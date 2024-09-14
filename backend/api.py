@@ -3,6 +3,8 @@ import os
 import sqlite3
 from dotenv import load_dotenv
 from openai import OpenAI
+from flask_cors import CORS  # Import CORS
+
 
 # Load environment variables from .env file
 load_dotenv()
@@ -13,6 +15,7 @@ client = OpenAI(
 )
 
 app = Flask(__name__)
+CORS(app)
 
 def generate_sql_query(user_query):
     messages = [
@@ -32,7 +35,7 @@ def generate_sql_query(user_query):
     return generated_sql
 
 def execute_query(sql_query):
-    conn = sqlite3.connect('real_estate.db')
+    conn = sqlite3.connect('listings.db')
     cursor = conn.cursor()
     
     cursor.execute(sql_query)

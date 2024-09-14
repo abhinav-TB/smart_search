@@ -1,37 +1,40 @@
-# populate_database.py
 import sqlite3
 
-def setup_database():
-    conn = sqlite3.connect('real_estate.db')
-    cursor = conn.cursor()
-    
-    # Create the table
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS listings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        property_type TEXT,
-        location TEXT,
-        bedrooms INTEGER,
-        bathrooms INTEGER,
-        price INTEGER,
-        amenities TEXT
-    )
-    ''')
-    
-    # Insert dummy data
-    cursor.executemany('''
-    INSERT INTO listings (property_type, location, bedrooms, bathrooms, price, amenities)
-    VALUES (?, ?, ?, ?, ?, ?)
-    ''', [
-        ('house', 'Chicago', 2, 1, 350000, 'garage, pool'),
-        ('house', 'Chicago', 3, 2, 450000, 'garage, pool, fireplace'),
-        ('apartment', 'Chicago', 2, 2, 250000, 'gym, pool'),
-        ('house', 'New York', 2, 2, 500000, 'garage')
-    ])
-    
-    conn.commit()
-    conn.close()
+# Connect to SQLite database (or create it if it doesn't exist)
+conn = sqlite3.connect('listings.db')
 
-if __name__ == "__main__":
-    setup_database()
-    print("Database populated with dummy data.")
+# Create a cursor object to execute SQL commands
+cur = conn.cursor()
+
+# Create the listings table if it doesn't exist
+cur.execute('''
+CREATE TABLE IF NOT EXISTS listings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    property_type TEXT NOT NULL,
+    location TEXT NOT NULL,
+    bedrooms INTEGER NOT NULL,
+    bathrooms INTEGER NOT NULL,
+    price INTEGER NOT NULL,
+    amenities TEXT
+)
+''')
+
+# Insert dummy data into the listings table
+dummy_data = [
+    ('house', 'Chicago', 2, 1, 300000, 'garage, pool'),
+    ('apartment', 'New York', 3, 2, 500000, 'garden, balcony'),
+    ('house', 'Los Angeles', 4, 3, 800000, 'garage, garden, pool'),
+    ('house', 'San Francisco', 3, 2, 750000, 'pool, rooftop'),
+    ('apartment', 'Boston', 2, 1, 350000, 'garage, gym')
+]
+
+cur.executemany('''
+INSERT INTO listings (property_type, location, bedrooms, bathrooms, price, amenities)
+VALUES (?, ?, ?, ?, ?, ?)
+''', dummy_data)
+
+# Commit the transaction and close the connection
+conn.commit()
+conn.close()
+
+print("Database populated successfully!")
