@@ -2,16 +2,17 @@ from flask import Flask, request, jsonify
 import os
 import sqlite3
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import AzureOpenAI
 from flask_cors import CORS  # Import CORS
-
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Initialize the OpenAI client with your API key
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
+# Initialize the Azure OpenAI client with your API key and endpoint
+client = AzureOpenAI(
+    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+    api_version="2024-06-01",
+    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT")
 )
 
 app = Flask(__name__)
@@ -25,7 +26,7 @@ def generate_sql_query(user_query):
     
     response = client.chat.completions.create(
         messages=messages,
-        model="gpt-3.5-turbo",
+        model="gpt-35-turbo",
         temperature=0.3,
         max_tokens=150
     )
@@ -37,10 +38,8 @@ def generate_sql_query(user_query):
 def execute_query(sql_query):
     conn = sqlite3.connect('listings.db')
     cursor = conn.cursor()
-    
     cursor.execute(sql_query)
     results = cursor.fetchall()
-    
     conn.close()
     return results
 
