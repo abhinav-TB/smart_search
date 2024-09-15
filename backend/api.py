@@ -1,66 +1,90 @@
 from flask import Flask, request, jsonify
 import os
 import sqlite3
+import numpy as np
+from gensim.models import KeyedVectors
+from gensim.utils import simple_preprocess
+from scipy.spatial.distance import cosine
 from dotenv import load_dotenv
-from openai import AzureOpenAI
 from flask_cors import CORS  # Import CORS
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Initialize the Azure OpenAI client with your API key and endpoint
-client = AzureOpenAI(
-    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-    api_version="2024-06-01",
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT")
-)
+# Load pre-trained Word2Vec model (you may need to download it)
+model_path = './GoogleNews-vectors-negative300.bin'
+word2vec_model = KeyedVectors.load_word2vec_format(model_path, binary=True)
 
 app = Flask(__name__)
-CORS(app)
+CORS(app)  # Enable CORS for all routes
 
-def generate_sql_query(user_query):
-    messages = [
-        {"role": "system", "content": "You are a helpful assistant that converts natural language queries into SQL queries."},
-        {"role": "user", "content": f'Convert the following natural language query into a SQL query that searches for house listings in a real estate database. Provide only the SQL query with no additional text or formatting:\n\n"{user_query}"\n\nHere is an example database schema:\n- Table: listings\n  - Fields:\n    - property_type (varchar)\n    - location (varchar)\n    - bedrooms (int)\n    - bathrooms (int)\n    - price (int)\n    - amenities (text)\n\nSQL Query:'}
-    ]
-    
-    response = client.chat.completions.create(
-        messages=messages,
-        model="gpt-35-turbo",
-        temperature=0.3,
-        max_tokens=150
-    )
-    
-    generated_sql = response.choices[0].message.content.strip()
-    
-    return generated_sql
+def preprocess(text):
+    return simple_preprocess(text, deacc=True)
 
-def execute_query(sql_query):
+def vectorize(text, model):
+    words = preprocess(text)
+    word_vectors = [model[word] for word in words if word in model]
+    if not word_vectors:
+        return np.zeros(model.vector_size)
+    return np.mean(word_vectors, axis=0)
+
+def find_similar_items(user_query, limit=5):
     conn = sqlite3.connect('listings.db')
     cursor = conn.cursor()
-    cursor.execute(sql_query)
-    results = cursor.fetchall()
-    conn.close()
-    return results
 
-@app.route('/generate-query', methods=['POST'])
-def api_generate_query():
+    # Fetch all rows from the listings table
+    cursor.execute("SELECT * FROM listings")
+    items = cursor.fetchall()
+    conn.close()
+
+    query_vector = vectorize(user_query, word2vec_model)
+    results = []
+
+    # Dynamically handle the number of columns based on the table's structure
+    for item in items:
+        item_id, property_type, location, bedrooms, bathrooms, price, amenities, image_url, nearby_attractions, year_built, property_status, square_footage, number_of_floors, parking_spaces, construction_material, heating_cooling_systems, monthly_hoa_fee, pet_policy = item
+
+        # Combine all relevant fields for similarity comparison
+        item_text = f"{property_type} {location} {amenities} {nearby_attractions} {construction_material} {heating_cooling_systems} {property_status} {pet_policy}"
+        item_vector = vectorize(item_text, word2vec_model)
+        similarity = 1 - cosine(query_vector, item_vector)
+
+        # Append the result with all fields
+        results.append({
+            'item_id': item_id,
+            'property_type': property_type,
+            'location': location,
+            'bedrooms': bedrooms,
+            'bathrooms': bathrooms,
+            'price': price,
+            'amenities': amenities,
+            'image_url': image_url,
+            'nearby_attractions': nearby_attractions,
+            'year_built': year_built,
+            'property_status': property_status,
+            'square_footage': square_footage,
+            'number_of_floors': number_of_floors,
+            'parking_spaces': parking_spaces,
+            'construction_material': construction_material,
+            'heating_cooling_systems': heating_cooling_systems,
+            'monthly_hoa_fee': monthly_hoa_fee,
+            'pet_policy': pet_policy,
+            'similarity': float(similarity)  # Convert numpy float to Python float
+        })
+
+    results.sort(key=lambda x: x['similarity'], reverse=True)
+    return results[:limit]
+
+
+@app.route('/search', methods=['POST'])
+def search():
     data = request.json
     user_query = data.get('query')
+    limit = data.get('limit', 5)  # Default to 5 items if not provided
     if not user_query:
         return jsonify({'error': 'Query parameter is missing'}), 400
-    
-    sql_query = generate_sql_query(user_query)
-    return jsonify({'sql_query': sql_query})
 
-@app.route('/execute-query', methods=['POST'])
-def api_execute_query():
-    data = request.json
-    sql_query = data.get('sql_query')
-    if not sql_query:
-        return jsonify({'error': 'SQL query parameter is missing'}), 400
-    
-    results = execute_query(sql_query)
+    results = find_similar_items(user_query, limit)
     return jsonify({'results': results})
 
 if __name__ == '__main__':
