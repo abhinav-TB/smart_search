@@ -1,6 +1,6 @@
 # Smart Search
 
-**Smart Search** is a dynamic real estate application that allows users to search for house listings using natural language queries. It utilizes OpenAI's Azure API to convert user queries into SQL, which is executed against an SQLite database. The results are displayed with relevant images, property details, and amenities in an appealing UI.
+**Smart Search** is a dynamic real estate application that allows users to search for house listings using natural language queries. It utilizes OpenAI's Azure API to convert user queries into SQL, which is executed against an SQLite database. The results are displayed with relevant images, property details
 
 ## Features
 - **Natural Language Search**: Users can input queries such as *"Find me a 3-bedroom house in New York under $500k with a garden."*
