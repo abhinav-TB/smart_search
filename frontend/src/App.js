@@ -109,7 +109,7 @@ const SearchBar = styled(TextField)(() => ({
     color: '#555',
   },
   '& .MuiInputLabel-root.Mui-focused': {
-    color: '#ff850f', 
+    color: '#ff850f',
   },
 }));
 
@@ -120,6 +120,39 @@ const Title = styled(Typography)({
   textAlign: 'center',
   margin: '20px 0',
 });
+
+const CustomSelect = styled(Select)(() => ({
+  '& .MuiSelect-icon': {
+    color: '#ff850f !important',
+  },
+  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#ff850f; !important',
+  },
+  '&:hover .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#ff850f; !important',
+  },
+}));
+
+// Custom styled MenuItem
+const CustomMenuItem = styled(MenuItem)(({ theme }) => ({
+  '&:hover': {
+    backgroundColor: '#ffede1 !important',
+  },
+  '&.Mui-selected': {
+    backgroundColor: '#ffb380 !important',
+    color: '#000 !important',
+    '&:hover': {
+      backgroundColor: '#ffb380 !important',
+    },
+  },
+}));
+
+// Styled InputLabel to change color when focused
+const CustomInputLabel = styled(InputLabel)(() => ({
+  '&.Mui-focused': {
+    color: '#ff850f',
+  },
+}));
 
 const App = () => {
   const [query, setQuery] = useState('');
@@ -171,18 +204,19 @@ const App = () => {
           />
 
           <FormControl fullWidth margin="normal" sx={{ width: '80%', marginTop: '20px' }}>
-            <InputLabel>Number of Items</InputLabel>
-            <Select
+            <CustomInputLabel>Number of Items</CustomInputLabel>
+            <CustomSelect
               value={itemsToShow}
               onChange={(e) => setItemsToShow(e.target.value)}
               label="Number of Items"
             >
               {[5, 10, 15, 20].map((num) => (
-                <MenuItem key={num} value={num}>{num}</MenuItem>
+                <CustomMenuItem key={num} value={num}>
+                  {num}
+                </CustomMenuItem>
               ))}
-            </Select>
+            </CustomSelect>
           </FormControl>
-
           <div style={{ marginTop: '20px' }}>
             <StyledButton variant="contained" type="submit" disabled={loading}>
               Search
