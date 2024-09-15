@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 import {
@@ -25,16 +25,67 @@ const MainContainer = styled(Container)({
 });
 
 // Styled button for more appeal
-const StyledButton = styled(Button)({
+const StyledButton = styled(Button)(() => ({
+  position: 'relative',
   padding: '12px 30px',
   fontSize: '18px',
-  backgroundColor: '#1976d2',
-  '&:hover': {
-    backgroundColor: '#135ba1',
-  },
+  backgroundColor: '#9e9e9e',
   color: '#fff',
   borderRadius: '30px',
-});
+  overflow: 'hidden',
+  '&:hover': {
+    backgroundColor: '#757575',
+    color: '#fff',
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: '#1976d2',
+      transition: 'transform 0.3s',
+      transform: 'translateY(0)',
+      zIndex: -1,
+    },
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: '#fff',
+      transition: 'transform 0.3s',
+      transform: 'translateY(-100%)',
+      zIndex: -2,
+    },
+  },
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#fff',
+    transition: 'transform 0.3s',
+    transform: 'translateY(-100%)',
+    zIndex: -1,
+  },
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#1976d2',
+    transition: 'transform 0.3s',
+    transform: 'translateY(0)',
+    zIndex: -2,
+  },
+}));
 
 const SearchBar = styled(TextField)({
   marginBottom: '20px',
@@ -45,6 +96,10 @@ function App() {
   const [userQuery, setUserQuery] = useState('');
   const [queryResults, setQueryResults] = useState([]);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    document.title = 'Smart Search';
+  }, []);
 
   // Handle form submission for generating and executing SQL
   const handleSearch = async (event) => {
