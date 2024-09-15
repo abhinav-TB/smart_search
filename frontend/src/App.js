@@ -29,12 +29,12 @@ const StyledButton = styled(Button)(() => ({
   position: 'relative',
   padding: '12px 30px',
   fontSize: '18px',
-  backgroundColor: '#9e9e9e',
+  backgroundColor: '#ff850f',
   color: '#fff',
   borderRadius: '30px',
   overflow: 'hidden',
   '&:hover': {
-    backgroundColor: '#757575',
+    backgroundColor: '#e07b0e',
     color: '#fff',
     '&::before': {
       content: '""',
@@ -87,9 +87,34 @@ const StyledButton = styled(Button)(() => ({
   },
 }));
 
-const SearchBar = styled(TextField)({
+const SearchBar = styled(TextField)(() => ({
   marginBottom: '20px',
   width: '80%',
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': {
+      borderColor: '#ccc',
+    },
+    '&:hover fieldset': {
+      borderColor: '#ff850f',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#ff850f',
+    },
+  },
+  '& .MuiInputLabel-root': {
+    color: '#555',
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: '#ff850f', 
+  },
+}));
+
+const Title = styled(Typography)({
+  fontSize: '2.3rem',
+  fontWeight: 'bold',
+  color: '#ff850f',
+  textAlign: 'center',
+  margin: '20px 0',
 });
 
 function App() {
@@ -130,6 +155,7 @@ function App() {
       <div className="background-slider"></div>
       <div className="background-overlay"></div>
       <MainContainer maxWidth="md">
+      <Title>Smart Search</Title>
         <Typography variant="h2" align="center" gutterBottom sx={{ fontWeight: 'bold', color: '#333' }}>
           Find Your Dream Apartment
         </Typography>
